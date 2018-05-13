@@ -47,6 +47,8 @@ Finally open `core.cljs` with Vim and let vim-fireplace launch CLJS REPL and con
 
 Now you can do `cpp`, `K`, `:Eval (js/alert "hey")`, `]<C-D>`, `]d`, etc...
 
+![ss](ss.png)
+
 ## Tips
 
 A custom vim command would help you. Add below line to your `.vimrc`.

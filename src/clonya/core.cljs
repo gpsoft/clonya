@@ -4,6 +4,3 @@
 
 #_(js/alert "hey!")
 
-(def a "abc")
-(defn hoge [])
-(defn fuga [])
