@@ -2,3 +2,7 @@ body {
 	color: #eeeeee;
 	background-color: #336699;
 }
+
+canvas {
+	background-color: #77aadd;
+}

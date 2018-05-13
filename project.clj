@@ -2,19 +2,24 @@
   :description "A ClojureScript project"
 
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.238"]]
+                 [org.clojure/clojurescript "1.10.238"]
+                 [org.clojure/core.async "0.4.474"]
+                 [enfocus "2.1.1"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
             [lein-simpleton "1.3.0"]]
 
-  :source-paths ["src"]
+  ;; Not sure but need `src/cljs` here.
+  ;; Otherwise CLJS namespace can't be seen from CLJS REPL?
+  :source-paths ["src/clj" "src/cljc" "src/cljs"]
 
   :cljsbuild
   {:builds
    [{:id "dev"
-     :source-paths ["src"]
+     :source-paths ["src/cljs" "src/cljc"]
      :compiler {:main clonya.core
                 :optimizations :none
+                :warnings {:single-segment-namespace false} 
                 :asset-path "js/compiled/out"
                 :output-to "resources/public/js/compiled/clonya.js"
                 :output-dir "resources/public/js/compiled/out"
@@ -24,7 +29,7 @@
      }
 
     {:id "min"
-     :source-paths ["src"]
+     :source-paths ["src/cljs" "src/cljc"]
      :compiler {:main clonya.core
                 :optimizations :advanced
                 :output-to "resources/public/js/compiled/clonya.js"
@@ -40,7 +45,7 @@
    {:dependencies [[figwheel-sidecar "0.5.16"]
                    [cider/piggieback "0.3.3"]
                    [org.clojure/tools.nrepl "0.2.13"]]
-    :source-paths ["src" "dev"]
+    :source-paths ["src/clj" "src/cljc" "dev"]
     :plugins [[cider/cider-nrepl "0.17.0"]]
     :repl-options {:nrepl-middleware
                    [cider.piggieback/wrap-cljs-repl]}
