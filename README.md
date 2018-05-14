@@ -28,7 +28,7 @@ First start Clojure REPL. It's a traditional REPL session with nREPL server and 
 
      $ lein repl
 
-Then start Figwheel server.
+Then start Figwheel server by calling a helper function defined in `user.clj`.
 
     user=> (startfig)
 
@@ -36,18 +36,29 @@ Figwheel takes care of lots of things:
 
 - compliles your CLJS sources once
 - serves HTML pages at port 3449
-- watches source files to reload when you changed one
+- watches source files to recompile and reload when you changed one
 - also CSS files will be reloaded automatically (but not HTML files)
 
 So open `http://localhost:3449/` with a browser(Chrome is recommended).
 
-Finally open `core.cljs` with Vim and let vim-fireplace launch CLJS REPL and connect to it. It's a CLJS bREPL(browser REPL) provided by Figwheel.
+Finally open `core.cljs` with Vim and let vim-fireplace launch CLJS REPL and connect to it. This is a CLJS bREPL(browser REPL) supported by Figwheel.
 
     :Piggieback (figwheel-sidecar.repl-api/repl-env)
 
 Now you can do `cpp`, `K`, `:Eval (js/alert "hey")`, `]<C-D>`, `]d`, etc...
 
 ![ss](ss.png)
+
+What's happening here?
+
+- I hit `cpp` on the Vim with cursor inside of `(js/alert "hey")`
+- vim-fireplace sends a request for evaluating the form to nREPL server
+- an nREPL middleware, Piggeback, hooks the request
+- knowing the form is a CLJS code, Piggieback redirects the request to CLJS bREPL
+- bREPL compiles(transpiles) the code into JavaScript and tries to run it on a JavaScript runtime
+- in this case, the runtime is provided by Figwheel
+- so Figwheel sends the code to its agent on the browser through a websocket connection
+- the agent runs the code and the alert pops up
 
 ## Tips
 
@@ -57,11 +68,11 @@ A custom vim command would help you. Add below line to your `.vimrc`.
 
 When something's wrong, do `:Piggieback!` to disconnect and `:PigFig` to connect again.
 
-Be carefull no to do anything before connect to CLJS bREPL, otherwise vim-fireplace falls back to Nashorn REPL, which has no DOM, no console.
+Be carefull not to do anything before connect to CLJS bREPL, otherwise vim-fireplace falls back to Nashorn REPL, which has no DOM, no console.
 
 ## Caveat
 
-- `K` doesn't seem to work for some symbols like `def`
+- `K` doesn't seem to work for some symbols, such as `def`
 - when you defined Vars on the fly, source code lookup(line `]<C-D>` and `]d`) for them won't work until you reconnect(`:Piggieback!` and `:PigFig`)
 
 # Release
@@ -70,7 +81,7 @@ Compile all into one JS file(`resources/public/js/compiled/clonya.js`).
 
     $ lein cljsbuild once min
 
-Try it by a web server(lein-simpleton) to see all good.
+Try it by a web server(lein-simpleton) to see if all is good.
 
     $ lein simpleton 8080 file :from resources/public/
 
