@@ -45,13 +45,13 @@ Finally open `core.cljs` with Vim and let vim-fireplace launch CLJS REPL and con
 
     :Piggieback (figwheel-sidecar.repl-api/repl-env)
 
-Now you can do `cpp`, `K`, `:Eval (js/alert "hey")`, `]<C-D>`, `]d`, etc...
+Now you can do `cpp`, `K`, `:Eval (js/alert "hey!")`, `]<C-D>`, `]d`, etc...
 
 ![ss](ss.png)
 
 What's happening here?
 
-- I hit `cpp` on the Vim with cursor inside of `(js/alert "hey")`
+- I hit `cpp` on the Vim with cursor inside of `(js/alert "hey!")`
 - vim-fireplace sends a request for evaluating the form to nREPL server
 - an nREPL middleware, Piggeback, hooks the request
 - knowing the form is a CLJS code, Piggieback redirects the request to CLJS bREPL
@@ -70,10 +70,14 @@ When something's wrong, do `:Piggieback!` to disconnect and `:PigFig` to connect
 
 Be carefull not to do anything before connect to CLJS bREPL, otherwise vim-fireplace falls back to Nashorn REPL, which has no DOM, no console.
 
-## Caveat
+## Caveat and note
 
-- `K` doesn't seem to work for some symbols, such as `def`
+- `K` doesn't seem to work for some symbols, such as `def` and `if`
 - when you defined Vars on the fly, source code lookup(line `]<C-D>` and `]d`) for them won't work until you reconnect(`:Piggieback!` and `:PigFig`)
+
+Apropos `K` issue, I'm guessing `K` on CLJS sources doesn't work for special forms. Did you know `cljs.core/let` is not a special form, by the way? `cljs.core/let*` is.
+
+Piggieback has changed its group-id and namespace as of version 0.2.3. It's now `cider/piggieback`. However, we use 0.2.2 here because Figwheel-sidecar version 0.5.16 still uses older name.
 
 # Release
 
@@ -109,6 +113,11 @@ The project is base on the `figwheel` leiningen template.
          :source-paths ["src"]
          :compiler {:main clonya.core
                     :optimizations :none
+                    ;; asset-path controls url path from where
+                    ;; JS files are loaded.
+                    ;; it's impotant in non-optimization mode
+                    ;; because we have many JS files other than
+                    ;; clonya.js.
                     :asset-path "js/compiled/out"
                     :output-to "resources/public/js/compiled/clonya.js"
                     :output-dir "resources/public/js/compiled/out"
@@ -134,17 +143,22 @@ The project is base on the `figwheel` leiningen template.
       :profiles
       {:dev
        {:dependencies [[figwheel-sidecar "0.5.16"]
-                       [cider/piggieback "0.3.3"]
+                       ;; not the latest version of Piggieback
+                       ;; because of a breaking change of namespace.
+                       [com.cemerick/piggieback "0.2.2"]
                        [org.clojure/tools.nrepl "0.2.13"]]
 
         ;; Some fn's are defined in the user namespace.
         ;; Those code are under `dev` directory.
         :source-paths ["src" "dev"]
 
-        ;; for vim-fireplace
+        ;; for vim-fireplace.
+        ;; vim-fireplace can do most of the job by itself
+        ;; while it can be even better when it makes use of
+        ;; another nREPL middleware, cider-nrepl.
         :plugins [[cider/cider-nrepl "0.17.0"]]
         :repl-options {:nrepl-middleware
-                       [cider.piggieback/wrap-cljs-repl]}
+                       [cemerick.piggieback/wrap-cljs-repl]}
 
         :clean-targets
         ^{:protect false} [:target-path
