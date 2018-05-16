@@ -98,7 +98,7 @@ Try it by a web server(lein-simpleton) to see if all is good.
 
 # Annotated project.clj
 
-The project is base on the `figwheel` leiningen template.
+The project is base on the `figwheel` Leiningen template.
 
     (defproject clonya "0.1.0-SNAPSHOT"
       :description "A ClojureScript project"
@@ -106,6 +106,7 @@ The project is base on the `figwheel` leiningen template.
       :dependencies [[org.clojure/clojure "1.9.0"]
                      [org.clojure/clojurescript "1.10.238"]]
 
+      ;; Plugins for Leiningen.
       ;; No figwheel here becuase we don't do `lein figwheel`.
       ;; We do `lein repl` and start figwheel manually instead.
       :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
@@ -113,7 +114,8 @@ The project is base on the `figwheel` leiningen template.
 
       :source-paths ["src"]
 
-      ;; Remember this is not for CLJ but for CLJS.
+      ;; Options for lein-cljsbuild.
+      ;; Remember this section is only for CLJS(not for CLJ).
       :cljsbuild
       {:builds
        [{:id "dev"
@@ -122,16 +124,18 @@ The project is base on the `figwheel` leiningen template.
                     :optimizations :none
                     ;; asset-path controls url path from where
                     ;; JS files are loaded.
-                    ;; it's impotant in non-optimization mode
-                    ;; because we have many JS files other than
-                    ;; clonya.js.
+                    ;; It's impotant in non-optimized mode build
+                    ;; because we have many JS files
+                    ;; not just clonya.js.
                     :asset-path "js/compiled/out"
                     :output-to "resources/public/js/compiled/clonya.js"
                     :output-dir "resources/public/js/compiled/out"
                     :source-map-timestamp true}
 
+         ;; Compiler hooks for Figwheel.
          ;; You need this even if it's empty
-         ;; so that a websocket peer is injected into browser.
+         ;; so that lein-cljsbuild can inject the Figwheel agent
+         ;; into the output JS code.
          :figwheel {}
          }
 
@@ -142,6 +146,7 @@ The project is base on the `figwheel` leiningen template.
                     :output-to "resources/public/js/compiled/clonya.js"
                     :pretty-print false}}]}
 
+      ;; Options for Figwheel.
       :figwheel
       {:http-server-root "public"
        :server-port 3449
@@ -149,16 +154,20 @@ The project is base on the `figwheel` leiningen template.
 
       :profiles
       {:dev
+       ;; Figwheel is a Leiningen plugin, but its core
+       ;; functionalities are extracted from the plugin
+       ;; to a generic library--Figwheel-sidecar.
        {:dependencies [[figwheel-sidecar "0.5.16"]
                        [cider/piggieback "0.3.3"]
                        [org.clojure/tools.nrepl "0.2.13"]]
 
-        ;; Some fn's are defined in the user namespace.
+        ;; Some helper fn's for development are defined
+        ;; in the `user` namespace.
         ;; Those code are under `dev` directory.
         :source-paths ["src" "dev"]
 
-        ;; for vim-fireplace.
-        ;; vim-fireplace can do most of the job by itself
+        ;; Leiningen plugins and nREPL middleware for vim-fireplace.
+        ;; Vim-fireplace can do most of the job by itself
         ;; while it can be even better when it makes use of
         ;; another nREPL middleware, cider-nrepl.
         :plugins [[cider/cider-nrepl "0.17.0"]]
