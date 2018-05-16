@@ -1,4 +1,4 @@
-# clonya
+# Clonya
 
 This is a minimal ClojureScript application featuring:
 
@@ -7,7 +7,14 @@ This is a minimal ClojureScript application featuring:
 - Vim
 - vim-fireplace
 
+Make sure to use the latest version of vim-fireplace.
+
 # Files
+
+    $ git clone https://github.com/gpsoft/clonya.git
+    $ cd clonya
+
+Directories and files are:
 
     ├── README.md
     ├── dev
@@ -39,7 +46,7 @@ Figwheel takes care of lots of things:
 - watches source files to recompile and reload when you changed one
 - also CSS files will be reloaded automatically (but not HTML files)
 
-So open `http://localhost:3449/` with a browser(Chrome is recommended).
+So navigate a browser(Chrome is recommended) to `http://localhost:3449/` to open `index.html`, and confirm the reloading by editing `style.css`.
 
 Finally open `core.cljs` with Vim and let vim-fireplace launch CLJS REPL and connect to it. This is a CLJS bREPL(browser REPL) supported by Figwheel.
 
@@ -66,18 +73,18 @@ A custom vim command would help you. Add below line to your `.vimrc`.
 
     command! PigFig execute('Piggieback (figwheel-sidecar.repl-api/repl-env)')
 
-When something's wrong, do `:Piggieback!` to disconnect and `:PigFig` to connect again.
+When something went wrong, do `:Piggieback!` to disconnect and `:PigFig` to connect again.
 
 Be carefull not to do anything before connect to CLJS bREPL, otherwise vim-fireplace falls back to Nashorn REPL, which has no DOM, no console.
 
-## Caveat and note
+## Caveats and notes
 
-- `K` doesn't seem to work for some symbols, such as `def` and `if`
+- `K` doesn't seem to work for some symbols, such as `def`, `ns`, or `if`
 - when you defined Vars on the fly, source code lookup(line `]<C-D>` and `]d`) for them won't work until you reconnect(`:Piggieback!` and `:PigFig`)
 
-Apropos `K` issue, I'm guessing `K` on CLJS sources doesn't work for special forms. Did you know `cljs.core/let` is not a special form, by the way? `cljs.core/let*` is.
+Apropos the `K` issue, I'm guessing `K` on CLJS sources doesn't work for special forms. Did you know `cljs.core/let` is not a special form, by the way? `cljs.core/let*` is. Also `ns` is a special form in CLJS.
 
-Piggieback has changed its group-id and namespace as of version 0.2.3. It's now `cider/piggieback`. However, we use 0.2.2 here because Figwheel-sidecar version 0.5.16 still uses older name.
+Piggieback has changed its group-id and namespace as of version 0.2.3. It's now `cider/piggieback`. We need Figwheel 0.5.16 and vim-fireplace 7b1246e(2018-04-22) or later to work with it.
 
 # Release
 
@@ -143,9 +150,7 @@ The project is base on the `figwheel` leiningen template.
       :profiles
       {:dev
        {:dependencies [[figwheel-sidecar "0.5.16"]
-                       ;; not the latest version of Piggieback
-                       ;; because of a breaking change of namespace.
-                       [com.cemerick/piggieback "0.2.2"]
+                       [cider/piggieback "0.3.3"]
                        [org.clojure/tools.nrepl "0.2.13"]]
 
         ;; Some fn's are defined in the user namespace.
@@ -158,7 +163,7 @@ The project is base on the `figwheel` leiningen template.
         ;; another nREPL middleware, cider-nrepl.
         :plugins [[cider/cider-nrepl "0.17.0"]]
         :repl-options {:nrepl-middleware
-                       [cemerick.piggieback/wrap-cljs-repl]}
+                       [cider.piggieback/wrap-cljs-repl]}
 
         :clean-targets
         ^{:protect false} [:target-path

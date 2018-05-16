@@ -38,12 +38,12 @@
   :profiles
   {:dev
    {:dependencies [[figwheel-sidecar "0.5.16"]
-                   [com.cemerick/piggieback "0.2.2"]
+                   [cider/piggieback "0.3.3"]
                    [org.clojure/tools.nrepl "0.2.13"]]
     :source-paths ["src" "dev"]
     :plugins [[cider/cider-nrepl "0.17.0"]]
     :repl-options {:nrepl-middleware
-                   [cemerick.piggieback/wrap-cljs-repl]}
+                   [cider.piggieback/wrap-cljs-repl]}
     :clean-targets
     ^{:protect false} [:target-path
                        "resources/public/js/compiled"]}})
