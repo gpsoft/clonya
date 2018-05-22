@@ -2,27 +2,38 @@
   (:require [enfocus.core :as ef]
             [enfocus.events :as ev]
             [enfocus.effects :as effects]
-            [cljs.core.async :refer [timeout put! chan <! mult tap]])
+            [cljs.core.async :refer [timeout take! put! chan <! >! close! mult tap]])
   (:require-macros [enfocus.macros :as em]
                    [cljs.core.async.macros :refer [go go-loop]]))
 
 (defonce db (atom {:on true
                    :world {:paws []}}))
+(defonce src-chan (chan))
+(defonce mult-tic (mult src-chan))
 
-(def ^:private ^:dynamic *tick* 300)
+(def ^:private tick 1300)
 (def ^:private width 500)
 (def ^:private height 300)
 
-(defn- dt->time-str [dt]
+
+;;; CLOCK
+(defn- format-dt [dt]
   (-> dt
       .toTimeString
       (clojure.string/split " ")
       first))
 
 (defn- update-clock []
-  (let [now (-> (js/Date.) dt->time-str)]
-    (ef/at ["#clock"] (ef/content now))))
+  (let [now (-> (js/Date.) format-dt)]
+    (ef/at "#clock" (ef/content now))))
 
+(defn- start-clock []
+  (go-loop []
+    (<! (timeout 100))
+    (update-clock)
+    (recur)))
+
+;;; LISTENING TO DOM EVENTS
 (defn- listen
   ([sel ev-type] (listen sel ev-type identity))
   ([sel ev-type ev-mapper]
@@ -32,39 +43,29 @@
                        #(put! out (ev-mapper %))))
      out)))
 
-(defn- remove-intro []
-  (ef/at "#intro" (ef/remove-node)))
-
-(defn- start-clock []
-  (go-loop []
-    (<! (timeout 500))
-    (update-clock)
-    (recur)))
-
-(defn- ready-canvas []
-  (ef/at ["#canvas"] (ef/set-attr :width width :height height))
-  )
-
-(defn- listen-to-main-switch []
-  (let [clicks (listen "#mainSw" :click (constantly true))]
-    (go-loop []
-      (.log js/console (<! clicks))
-      (recur))))
+;;; CSS
+(defn- str-px
+  [val]
+  (str val "px"))
 
 (defonce ^:private id-gen
-     (let [c (atom 0)]
-       (fn [] (swap! c inc))))
+  (let [c (atom 0)]
+    (fn [] (swap! c inc))))
 
 (defn- to-radians
   [deg]
-  (- (/ Math/PI 2) (/ (* Math/PI deg) 180)))
+  (- (/ Math/PI 2)
+     (/ (* Math/PI deg) 180)))
 
+;;; PAW
 (defn- paw
   [id x y deg]
   {:id id
    :x x
    :y y
    :deg deg
+   :step 50
+   :freq 3
    :last-move 0})
 
 (defn- mk-paw
@@ -76,41 +77,62 @@
     (paw id x y deg)))
 
 (defn- move-paw
-  [{:keys [x y deg] :as paw}]
-  (let [rad (to-radians deg)
-        dx (* 50 (Math/cos rad))
-        dy (* 50 (Math/sin rad))]
-    (assoc paw :x (+ x dx) :y (+ y dy))))
+  [{:keys [x y deg step freq last-move] :as paw} t]
+  (if (> t (+ last-move freq))
+    (let [rad (to-radians deg)
+          dx (* step (Math/cos rad))
+          dy (* step (Math/sin rad))]
+      (assoc paw
+             :x (+ x dx)
+             :y (- y dy)
+             :last-move t))
+    paw))
 
 (defn- paw-ele
-  [id x y deg]
-  [:div.paw {:data-paw-id id
-             :style (str "left:" x "px;top:" y  "px;"
-                         "transform:rotate(" deg "deg)")}])
+  [id]
+  [:div.paw {:data-paw-id id}])
+
+#_(str "left:" x "px;top:" y  "px;" "transform:rotate(" deg "deg)")
+
+(defn- sync-paw-ele
+  [{:keys [id x y deg]} move?]
+  (ef/at (str "div.paw[data-paw-id=" id "]")
+         (ef/do-> (ef/set-style :transform (str "rotate(" deg "deg)"))
+                  (if move?
+                    (effects/move x y 100)
+                    (ef/set-style :left (str-px x)
+                                  :top (str-px y))))))
 
 (defn- reify-paw-ele
   [{:keys [id x y deg] :as paw}]
-  (let [ele (paw-ele id x y deg)]
-    (ef/at [:#canvas] (ef/append (ef/html ele)))))
+  (let [ele (paw-ele id)]
+    (ef/at [:#canvas]
+           (ef/append (ef/html ele)))
+    (sync-paw-ele paw false)))
 
-(defn- move-paw-ele
-  [paw]
-  (let [{:keys [id x y] :as next-paw} (move-paw paw)]
-    (ef/at (str "div.paw[data-paw-id=" id "]")
-           (effects/move x y 300))
-    next-paw))
+(defn- activate-paw
+  [paw mult-tic]
+  (let [tic-chan (tap mult-tic (chan))]
+    (reify-paw-ele paw)
+    (go-loop
+      [t (<! tic-chan)
+       p paw]
+      (when t
+        (let [p (move-paw p t)]
+          (sync-paw-ele p true)
+          (recur (<! tic-chan) p))))))
 
-#_(defn- add-paw []
-  (let [paw (mk-paw (id-gen))]
-    (swap! db update-in [:world :paws] conj paw)))
+(defn- start-tick
+  []
+  (go-loop
+      [t 1]
+      (<! (timeout tick))
+      #_(println "tic" t)
+      (when (>! src-chan t)
+        (recur (inc t)))))
 
-#_(defn- move-paw [paw]
-  (let [x (inc (:x paw))
-        x (if (> x width) (- x width) x)]
-    (assoc paw :x x)))
 
-#_(defn- move-paws [paws]
-  (mapv move-paw paws))
+
 
 (defn- update-world
   [ts]
@@ -133,23 +155,45 @@
 
 (defn- run
   [ch ts]   ; ts is DOMHighResTimeStamp
-  (go (<! (timeout *tick*))
+  (go (<! (timeout tick))
       (put! ch ts)
       (.requestAnimationFrame js/window (partial run ch))))
+
+(defn- remove-intro []
+  (ef/at "#intro" (ef/remove-node)))
+
+(defn- ready-canvas []
+  (ef/at "#canvas"
+         (ef/set-style :width (str-px width)
+                       :height (str-px height))))
+
+(defn- listen-to-main-switch []
+  (let [clicks (listen "#mainSw" :click (constantly true))]
+    (go-loop []
+      (.log js/console (<! clicks))
+      (recur))))
+
+(defn- listen-to-paw-btn []
+  (let [clicks (listen "#pawBtn" :click)]
+    (go-loop []
+      (<! clicks)
+      (let [paw (mk-paw)]
+        (reify-paw-ele paw)
+        (activate-paw paw mult-tic)
+      (recur)))))
 
 (defn start []
   (remove-intro)
   (start-clock)
   (ready-canvas)
-  #_(add-paw)
   (listen-to-main-switch)
-  (let [tick-ch (mk-main-loop)]
-    (run tick-ch 0)))
+  (listen-to-paw-btn)
+  (start-tick))
 
 (set! (.-onload js/window) start)
 
 (defn new-paw
-  [mul-tic]
+  [mult-tic]
   (let [x (rand width)
         y (rand height)
         dir (rand 360)
@@ -159,7 +203,7 @@
                                    "transform:rotate(" dir "deg)")}]]
     (ef/at [:#canvas] (ef/append (ef/html ele)))
     (let [tap-tic (chan)]
-      (tap mul-tic tap-tic)
+      (tap mult-tic tap-tic)
       (go-loop []
         (let [t (<! tap-tic)]
           (ef/at (str "div.paw[data-paw-id=" id "]")
@@ -180,14 +224,30 @@
   (add-paw)
   (ef/at [:#canvas]
          (ef/append (ef/html [:div.paw {:data-paw-id 3 :style "left:130px;top:80px;transform:rotate(135deg)"}])))
+  (go-loop
+    [t 1]
+    (<! (timeout 1000))
+    (println "tic" t)
+    (when (>! tic t)
+      (recur (inc t))))
+  (go-loop
+    []
+    (let [t (<! tic)]
+      (println "tac" t)
+      (when-not (nil? t) (recur))))
   (def tic (chan))
-  (def mul-tic (mult tic))
-  (new-paw mul-tic)
-  (put! tic 1)
+  (def mult-tic (mult tic))
+  (new-paw mult-tic)
+  (put! tic nil)
+  (take! tic println)
+  (take! (tap mult-tic (chan)) println)
+  (close! tic)
   (ef/at "div.paw[data-paw-id=3]"
          (effects/move 200 130 300))
+
   (let [paw (mk-paw)]
-    (reify-paw-ele paw)
+    #_(reify-paw-ele paw)
     (println paw)
-    (move-paw-ele paw))
+    (activate-paw paw mult-tic)
+    #_(move-paw-ele paw))
   )
