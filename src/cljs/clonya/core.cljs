@@ -11,7 +11,7 @@
 (defonce src-chan (chan))
 (defonce mult-tic (mult src-chan))
 
-(def ^:private tick 1300)
+(def ^:private tick 1000)
 (def ^:private width 500)
 (def ^:private height 300)
 
@@ -59,13 +59,13 @@
 
 ;;; PAW
 (defn- paw
-  [id x y deg]
+  [id x y deg freq]
   {:id id
    :x x
    :y y
    :deg deg
-   :step 50
-   :freq 3
+   :step 30
+   :freq freq
    :last-move 0})
 
 (defn- mk-paw
@@ -73,19 +73,30 @@
   (let [id (id-gen)
         x (rand-int width)
         y (rand-int height)
-        deg (rand-int 360)]
-    (paw id x y deg)))
+        deg (rand-int 360)
+        freq (+ 1 (rand-int 3))]
+    (paw id x y deg freq)))
+
+(defn- in-bounds?
+  [x y]
+  (and (< 0 x width)
+       (< 0 y height)))
 
 (defn- move-paw
   [{:keys [x y deg step freq last-move] :as paw} t]
   (if (> t (+ last-move freq))
     (let [rad (to-radians deg)
           dx (* step (Math/cos rad))
-          dy (* step (Math/sin rad))]
-      (assoc paw
-             :x (+ x dx)
-             :y (- y dy)
-             :last-move t))
+          dy (* step (Math/sin rad))
+          new-x (+ x dx)
+          new-y (- y dy)]
+      (if (in-bounds? new-x new-y)
+        (assoc paw
+               :x (+ x dx)
+               :y (- y dy)
+               :last-move t)
+        (assoc paw
+               :deg (mod (+ deg 90 (rand-int 180)) 360))))
     paw))
 
 (defn- paw-ele

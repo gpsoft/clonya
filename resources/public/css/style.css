@@ -3,6 +3,10 @@ body {
 	background-color: #336699;
 }
 
+section {
+	margin: 4px 0px;
+}
+
 canvas {
 	background-color: #77aadd;
 }
@@ -44,3 +48,18 @@ canvas {
 	left: -100px;
 	top: -100px;
 }
+
+button.btn {
+	font-size: 24px;
+	font-weight: bold;
+	padding: 10px 30px;
+	background-color: #dd9977;
+	color: #fff;
+	border-style: none;
+	cursor: pointer;
+}
+
+button.btn:hover {
+	background-color: #d6855c;
+}
+
