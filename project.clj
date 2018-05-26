@@ -4,14 +4,28 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.238"]
                  [org.clojure/core.async "0.4.474"]
-                 [enfocus "2.1.1"]]
+                 [enfocus "2.1.1"]
+                 [ring/ring-defaults "0.3.1"]
+                 [compojure "1.6.1"]
+                 [hiccup "1.0.5"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
-            [lein-simpleton "1.3.0"]]
+            [lein-ring "0.12.4"]
+            [lein-garden "0.3.0"]]
 
-  ;; Not sure but need `src/cljs` here.
-  ;; Otherwise CLJS namespace can't be seen from CLJS REPL?
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
+
+  :ring {:auto-reload? true
+         :handler clonya.core/app
+         :open-browser? false
+         :reload-paths ["src/clj" "src/cljc" "resources/"]}
+
+  :garden
+  {:builds
+   [{:source-paths ["src/styles"]
+     :stylesheet clonya.styles/main
+     :compiler {:output-to "resources/public/css/style.css"
+                :pretty-print? false}}]}
 
   :cljsbuild
   {:builds
@@ -38,14 +52,16 @@
   :figwheel
   {:http-server-root "public"
    :server-port 3449
-   :css-dirs ["resources/public/css"]}
+   :css-dirs ["resources/public/css"]
+   :ring-handler clonya.core/app}
 
   :profiles
   {:dev
    {:dependencies [[figwheel-sidecar "0.5.16"]
                    [cider/piggieback "0.3.3"]
-                   [org.clojure/tools.nrepl "0.2.13"]]
-    :source-paths ["src/clj" "src/cljc" "dev"]
+                   [org.clojure/tools.nrepl "0.2.13"]
+                   [garden "1.3.1"]]
+    :source-paths ["dev" "src/styles"]
     :plugins [[cider/cider-nrepl "0.17.0"]]
     :repl-options {:nrepl-middleware
                    [cider.piggieback/wrap-cljs-repl]}

@@ -1,5 +1,6 @@
 (ns clonya.core
-  (:require [enfocus.core :as ef]
+  (:require [clonya.util :as util]
+            [enfocus.core :as ef]
             [enfocus.events :refer [listen]]
             [enfocus.effects :refer [move]]
             [cljs.core.async :refer [timeout put! chan <! >! close! mult tap]])
@@ -178,6 +179,7 @@
   (clock-loop)
   (ready-canvas)
   (listen-to-paw-btn)
+  (ef/at "title" (ef/content util/title))
   (tick-loop))
 
 (set! (.-onload js/window) start)
