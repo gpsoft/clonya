@@ -27,7 +27,7 @@
 
   [:#top:after
    {:display 'block
-    :content ""
+    :content "\"\""
     :clear 'both}]
 
   [:#logo

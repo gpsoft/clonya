@@ -3,13 +3,14 @@
     clonya.styles
     [figwheel-sidecar.repl-api :as fig]
     [garden.core :refer [css]]
-    [clojure.core.async :refer [go-loop timeout <! >!]]))
+    [clojure.core.async :refer [go-loop timeout <!]]))
 
 (defn startfig [] (fig/start-figwheel!))
 (defn stopfig [] (fig/stop-figwheel!))
 (defn cljsrepl [] (fig/cljs-repl))
 
-(defn project-m
+(defn- project-m
+  "The project map"
   []
   (->> "project.clj"
        slurp
@@ -27,7 +28,9 @@
          style-sym (:stylesheet build)
          opts (:compiler build)
          style (atom (eval style-sym))]
+     ;; compile once.
      (css opts style)
+     ;; and keep watching.
      (go-loop []
        (<! (timeout 500))
        (let [s (eval style-sym)]

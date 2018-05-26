@@ -2,7 +2,7 @@
   (:require [clonya.util :as util]
             [enfocus.core :as ef]
             [enfocus.events :refer [listen]]
-            [enfocus.effects :refer [move]]
+            [enfocus.effects :refer [move resize]]
             [cljs.core.async :refer [timeout put! chan <! >! close! mult tap]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
@@ -143,8 +143,9 @@
 
 (defn- ready-canvas []
   (ef/at "#canvas"
-         (ef/set-style :width (str-px width)
-                       :height (str-px height))))
+         (ef/do-> (ef/set-style :width (str-px width)
+                                :height 0)
+                  (resize :curwidth height 300))))
 
 (defn- paw-loop
   [paw mult-tick]
@@ -157,12 +158,16 @@
           (sync-paw-ele p true)
           (recur (<! tick-chan) p))))))
 
+(defn- new-paw
+  []
+  (let [paw (mk-paw)]
+    (reify-paw-ele paw)
+    (paw-loop paw mult-tick)))
+
 (defn- listen-to-paw-btn []
   (go-loop []
     (when (<! paw-btn-chan)
-      (let [paw (mk-paw)]
-        (reify-paw-ele paw)
-        (paw-loop paw mult-tick))
+      (new-paw)
       (recur))))
 
 (defn- tick-loop
@@ -180,6 +185,7 @@
   (ready-canvas)
   (listen-to-paw-btn)
   (ef/at "title" (ef/content util/title))
+  (dorun (repeatedly 5 #(new-paw)))
   (tick-loop))
 
 (set! (.-onload js/window) start)
