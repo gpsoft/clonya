@@ -15,9 +15,10 @@
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
 
-  :ring {:auto-reload? true
-         :handler clonya.core/app
+  :ring {:handler clonya.core/app
+         ;; When you do `lein ring server`, auto-reloading works.
          :open-browser? false
+         :auto-reload? true
          :reload-paths ["src/clj" "src/cljc" "resources/"]}
 
   :garden
@@ -53,6 +54,7 @@
   {:http-server-root "public"
    :server-port 3449
    :css-dirs ["resources/public/css"]
+   ;; Figwheel is aware of the Ring handler.
    :ring-handler clonya.core/app}
 
   :profiles
