@@ -2,6 +2,7 @@ target/
 .cljs_nashorn_repl/
 nashorn_code_cache/
 resources/public/js/compiled/
+resources/public/css/
 figwheel_server.log
 .lein-deps-sum
 .lein-repl-history
