@@ -1,6 +1,6 @@
 # Clonya
 
-This is a not-so-minimal Clojure/ClojureScript application featuring the minimal setup(master branch) plus:
+This is a not-so-minimal Clojure/ClojureScript application featuring the minimal setup([the master branch](https://github.com/gpsoft/clonya/tree/master)) plus:
 
 - Ring
 - Garden
@@ -75,5 +75,5 @@ An http server(Jetty) is embedded in the uberjar file. So try it.
 
 We use `lein-ring` plugin only for releasing. During development, we let Figwheel hook the Ring handler and serves it through its own web server(not the Rint&Jetty setup). A caveat is that auto-reloading for CLJ doesn't work.
 
-Also we don't do `lein garden auto` in dev. Instead, the helper function detects the change in `lein-garden` and re-generate the css file. As auto-reloading doesn't work, you need to do `cpp` on the `defstyles` form to update the var.
+Also we don't do `lein garden auto` in dev. Instead, the helper function detects the change in `clonya.styles/main` and re-generate the css file. As auto-reloading doesn't work, you need to do `cpp` on the `defstyles` form to update the var.
 
