@@ -29,7 +29,7 @@
          opts (:compiler build)
          style (atom (eval style-sym))]
      ;; compile once.
-     (css opts style)
+     (css opts @style)
      ;; and keep watching.
      (go-loop []
        (<! (timeout 500))
