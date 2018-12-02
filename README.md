@@ -96,6 +96,14 @@ Try it by a web server(lein-simpleton) to see if all is good.
 
     $ lein simpleton 8080 file :from resources/public/
 
+# Export
+
+To start new project using `Clonya` as the template:
+
+    $ mkdir -p ../new-proj
+    $ git archive notsominimal |tar x -C ../new-proj
+    $ cd ../new-proj
+
 # Want more?
 
 [The `notsominimal` branch](https://github.com/gpsoft/clonya/tree/notsominimal) has a bit more complicated version including core.async and CLJ&CLJS mixed setup.
