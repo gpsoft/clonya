@@ -71,6 +71,14 @@ An http server(Jetty) is embedded in the uberjar file. So try it.
 
     $ PORT=8080 java -jar target/clonya-0.1.0-SNAPSHOT-standalone.jar
 
+# Export
+
+To start new project using `Clonya` as the template:
+
+    $ mkdir -p ../new-proj
+    $ git archive notsominimal |tar x -C ../new-proj
+    $ cd ../new-proj
+
 # Note
 
 We use `lein-ring` plugin only for releasing. During development, we let Figwheel hook the Ring handler and serves it through its own web server(not the Ring&Jetty setup). A caveat is that auto-reloading for CLJ doesn't work.
