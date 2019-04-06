@@ -3,9 +3,9 @@
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.238"]
-                 [org.clojure/core.async "0.4.474"]
+                 [org.clojure/core.async "0.4.490"]
                  [enfocus "2.1.1"]
-                 [ring/ring-defaults "0.3.1"]
+                 [ring/ring-defaults "0.3.2"]
                  [compojure "1.6.1"]
                  [hiccup "1.0.5"]]
 
@@ -59,12 +59,12 @@
 
   :profiles
   {:dev
-   {:dependencies [[figwheel-sidecar "0.5.16"]
-                   [cider/piggieback "0.3.3"]
-                   [org.clojure/tools.nrepl "0.2.13"]
-                   [garden "1.3.1"]]
+   {:dependencies [[figwheel-sidecar "0.5.18"]
+                   [cider/piggieback "0.4.0"]
+                   [nrepl "0.6.0"]
+                   [garden "1.3.6"]]
     :source-paths ["dev" "src/styles"]
-    :plugins [[cider/cider-nrepl "0.17.0"]]
+    :plugins [[cider/cider-nrepl "0.21.0"]]
     :repl-options {:nrepl-middleware
                    [cider.piggieback/wrap-cljs-repl]}
     :clean-targets
