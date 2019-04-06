@@ -1,8 +1,8 @@
 (defproject clonya "0.1.0-SNAPSHOT"
   :description "A ClojureScript project"
 
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.238"]]
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojurescript "1.10.520"]]
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
             [lein-simpleton "1.3.0"]]
@@ -37,11 +37,12 @@
 
   :profiles
   {:dev
-   {:dependencies [[figwheel-sidecar "0.5.16"]
-                   [cider/piggieback "0.3.3"]
-                   [org.clojure/tools.nrepl "0.2.13"]]
+   {:dependencies [[figwheel-sidecar "0.5.18"]
+                   [cider/piggieback "0.4.0"]
+                   [nrepl "0.6.0"]
+                   #_[org.clojure/tools.nrepl "0.2.13"]]
     :source-paths ["src" "dev"]
-    :plugins [[cider/cider-nrepl "0.17.0"]]
+    :plugins [[cider/cider-nrepl "0.21.0"]]
     :repl-options {:nrepl-middleware
                    [cider.piggieback/wrap-cljs-repl]}
     :clean-targets
